@@ -1,15 +1,20 @@
 package Chess;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 public class Chess {
     private final int size = 8;
     private int[][] board;
+    //private MyStack<Queen> queens;
     private Stack<Queen> queens;
+    private ArrayList<int[][]> states = new ArrayList<>();
 
     protected Chess() {
         this.board = new int[size][size];
-        this.queens = new Stack<>();
+        //this.queens = new MyStack<Queen>();
+        this.queens = new Stack<Queen>();
     }
 
     private void setQueen (Queen queen) {
@@ -63,28 +68,67 @@ public class Chess {
         return false;
     }
 
-    protected int[][] setAllQueen() throws Exception {
+    protected List<int[][]> setAllQueen() throws Exception {
+        return setAllQueen(board);
+    }
+
+    protected List<int[][]> setAllQueen(int[][] board) throws Exception {
+        this.board = board;
+        addBoardInStates(board);
+        int row = writeSetQueen();
         int tempCol = 0;
-        for (int i = 0; i < size; ) {
-            if (trySetQueen(i, tempCol)) {
-                i++;
+        for (; row < size; ) {
+            if (trySetQueen(row, tempCol)) {
+                row++;
                 tempCol = 0;
+                addBoardInStates(board);
             } else {
                 tempCol = queens.peek().getCol() + 1;
                 deleteQueen(queens.pop());
-                i--;
+                row--;
+                addBoardInStates(board);
                 if (tempCol < size - 1) {
-                    if(trySetQueen(i, tempCol)) {
-                        i++;
+                    if(trySetQueen(row, tempCol)) {
+                        row++;
                         tempCol = 0;
+                        addBoardInStates(board);
                     }
                 } else {
                     tempCol = queens.peek().getCol() + 1;
                     deleteQueen(queens.pop());
-                    i--;
+                    row--;
+                    addBoardInStates(board);
                 }
             }
         }
-        return board;
+        return states;
+    }
+
+    private int writeSetQueen() {
+        int row = 0;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (board[i][j] == -1) {
+                    row++;
+                    setQueen(new Queen(i, j));
+                }
+            }
+        }
+        return row;
+    }
+
+    private void addBoardInStates (int[][] board) {
+        int[][] boardCopy = copy(board);
+        states.add(boardCopy);
+    }
+
+    public int[][] copy(int[][] matrix) {
+        int size = matrix.length;
+        int[][] matrixCopy = new int[size][size];
+        for (int i = 0; i < size; i++)  {
+            int[] array = matrix[i];
+            System.arraycopy(array, 0, matrixCopy[i], 0, size);
+        }
+        return matrixCopy;
     }
 }
